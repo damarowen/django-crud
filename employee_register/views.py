@@ -1,37 +1,43 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 
 from employee_register.forms import EmployeeForm
+from employee_register.models import Employee
 
 # Create your views here.
-def employee_list(request):
-    # context = {'employee_list': Employee.objects.all()}
-    # return render(request, "employee_register/employee_list.html", context)
-    return render(request, "employee_register/employee_list.html")
 
+
+def employee_list(request):
+    context = {'employee_list': Employee.objects.all().order_by('id')}
+    return render(request, "employee_register/employee_list.html", context)
+
+# * id below for param: id, set default 0
 
 def employee_form(request, id=0):
-    form = EmployeeForm()
-    # if request.method == "GET":
-    #     if id == 0:
-    #         form = EmployeeForm()
-    #     else:
-    #         employee = Employee.objects.get(pk=id)
-    #         form = EmployeeForm(instance=employee)
-    #     return render(request, "employee_register/employee_form.html", {'form': form})
-    # else:
-    #     if id == 0:
-    #         form = EmployeeForm(request.POST)
-    #     else:
-    #         employee = Employee.objects.get(pk=id)
-    #         form = EmployeeForm(request.POST,instance= employee)
-    #     if form.is_valid():
-    #         form.save()
-    #     return redirect('/employee/list')
-    return render(request, "employee_register/employee_form.html", {"form": form})
+    if request.method == "GET":
+        # * if id 0 then is not update route
+        if id == 0:
+            form = EmployeeForm()
+        else:
+            # * parse primary key as id
+            employee = Employee.objects.get(pk=id)
+            # * populate form with employe with that id
+            form = EmployeeForm(instance=employee)
+        return render(request, "employee_register/employee_form.html", {'form': form})
+    else:
+        # * if id 0 then is not update route
+        if id == 0:
+            form = EmployeeForm(request.POST)
+        else:
+            # * parse primary key as id
+            employee = Employee.objects.get(pk=id)
+            # * populate form with employe with that id, and post it for update
+            form = EmployeeForm(request.POST, instance=employee)
+        if form.is_valid():
+            form.save()
+        return redirect('/employee/list')
 
 
-def employee_delete(request,id):
-    # employee = Employee.objects.get(pk=id)
-    # employee.delete()
-    # return redirect('/employee/list')
-    return
+def employee_delete(request, id):
+    employee = Employee.objects.get(pk=id)
+    employee.delete()
+    return redirect('/employee/list')
